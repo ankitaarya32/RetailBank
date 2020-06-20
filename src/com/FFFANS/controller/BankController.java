@@ -2,7 +2,10 @@ package com.FFFANS.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Date;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.RequestDispatcher;
@@ -11,10 +14,11 @@ import javax.servlet.http.*;
 
 import com.FFFANS.bean.Account;
 import com.FFFANS.bean.BankCustomer;
+import com.FFFANS.bean.Transaction;
 import com.FFFANS.service.BankService;
 
 
-@SuppressWarnings("serial")
+
 public class BankController extends HttpServlet {
 	
 	public void doGet(HttpServletRequest req,HttpServletResponse res) throws IOException, ServletException{
@@ -37,6 +41,61 @@ public class BankController extends HttpServlet {
 				e.printStackTrace();
 			}
 		}
+		if(action.equalsIgnoreCase("showAccount")) {
+			try {
+				List<Account> lst=bs.showAllAccounts();
+				RequestDispatcher rd= req.getRequestDispatcher("AccountStatus.jsp");
+				req.setAttribute("listcust", lst);
+				rd.forward(req, res);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if(action.equalsIgnoreCase("regcus")) {
+			HttpSession session=req.getSession(true);
+			res.sendRedirect("Registration.jsp");
+		}
+		if(action.equalsIgnoreCase("home")) {
+			HttpSession session=req.getSession(true);
+			res.sendRedirect("home.jsp");
+		}
+		if(action.equalsIgnoreCase("delcus")) {
+			HttpSession session=req.getSession(true);
+			res.sendRedirect("deleteCustomer.jsp");
+		}
+		if(action.equalsIgnoreCase("searAus")) {
+			HttpSession session=req.getSession(true);
+			res.sendRedirect("AccountSearch.jsp");
+		}
+		if(action.equalsIgnoreCase("delAcc")) {
+			HttpSession session=req.getSession(true);
+			res.sendRedirect("deleteAccount.jsp");
+		}
+		if(action.equalsIgnoreCase("searCus")) {
+			HttpSession session=req.getSession(true);
+			res.sendRedirect("CustomerSearch.jsp");
+		}
+		if(action.equalsIgnoreCase("creaus")) {
+			HttpSession session=req.getSession(true);
+			res.sendRedirect("createAccount.jsp");
+		}
+		
+		if(action.equalsIgnoreCase("getTrans")) {
+			res.sendRedirect("showTransaction.jsp");
+			/*try {
+				//List<BankCustomer> lst=bs.showCustomers();
+				//RequestDispatcher rd= req.getRequestDispatcher("customerStatus.jsp");
+				//req.setAttribute("listcust", lst);
+				//rd.forward(req, res);
+				req.getRequestDispatcher("showTransaction");
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}*/
+		}
+		
+		
 		
 		
 		
@@ -105,6 +164,7 @@ public class BankController extends HttpServlet {
 			String usrname=req.getParameter("username");
 			String pass=req.getParameter("password");
 			try {
+			
 				boolean flag=bs.verifyexecUser(usrname,pass);	
 				
 			if(flag) {
@@ -139,17 +199,29 @@ public class BankController extends HttpServlet {
 				int updateopt1=Integer.parseInt(req.getParameter("adhar"));
 				System.out.println(updateopt1);
 				cst=bs.searchCustomerByAdhar(updateopt1);
+				if(cst!=null) {
 				RequestDispatcher rd= req.getRequestDispatcher("updateCustomer.jsp");
 				req.setAttribute("class", cst);
-				rd.forward(req, res);
+				rd.forward(req, res);}
+				else {
+					RequestDispatcher rd= req.getRequestDispatcher("updateCustomer.jsp");
+					String smsg="No data found  ";
+					req.setAttribute("upmsg", smsg);
+					rd.forward(req, res);
+				}
 			}
 			else if(updateopt.equalsIgnoreCase("cid")){
 				int updateopt2=Integer.parseInt(req.getParameter("CusID"));
 				System.out.println(updateopt2);
 				cst=bs.searchCustomerByCusID(updateopt2);
+				if(cst!=null) {
 				RequestDispatcher rd= req.getRequestDispatcher("updateCustomer.jsp");
 				req.setAttribute("class", cst);
-				rd.forward(req, res);
+				rd.forward(req, res);}
+				else {RequestDispatcher rd= req.getRequestDispatcher("updateCustomer.jsp");
+				String smsg="No data found  ";
+				req.setAttribute("upmsg", smsg);
+				rd.forward(req, res);}
 			}
 			else {
 				res.sendRedirect("updateCustomer.jsp");
@@ -187,7 +259,12 @@ public class BankController extends HttpServlet {
 		System.out.println(acc);
 		try {
 			int x=bs.getAdhar(acc.getCustomerID());
-			if(x==0) System.out.println("Enter Correct CID");
+			if(x==0) { System.out.println("Enter Correct CID");
+			RequestDispatcher rd= req.getRequestDispatcher("createAccount.jsp");
+			String suucc="Enter Correct Customer  id";
+			req.setAttribute("sumsg", suucc);
+			rd.forward(req, res);
+			}
 			else {acc.setCustomerAdhar(x);
 			System.out.println(acc);
 			boolean flag=bs.createAccount(acc);
@@ -267,6 +344,11 @@ public class BankController extends HttpServlet {
 				req.setAttribute("class", acc);
 				rd.forward(req, res);
 			}
+			if(req.getParameter("searchvbn").equalsIgnoreCase("searchAcc1")) {
+				RequestDispatcher rd= req.getRequestDispatcher("AccountSearch.jsp");
+				req.setAttribute("class", acc);
+				rd.forward(req, res);
+			}
 			if(req.getParameter("searchvbn").equalsIgnoreCase("delete")) {
 			RequestDispatcher rd= req.getRequestDispatcher("deleteAccount.jsp");
 			req.setAttribute("class", acc);
@@ -301,7 +383,7 @@ public class BankController extends HttpServlet {
 		try {
 			bs.deleteAccount(z);
 			System.out.println("success delete: "+z);
-			RequestDispatcher rd= req.getRequestDispatcher("deleteCustomer.jsp");
+			RequestDispatcher rd= req.getRequestDispatcher("deleteAccount.jsp");
 			String rsms="Customer Account deleted having id:  "+z;
 			req.setAttribute("sumsg", rsms);
 			rd.forward(req, res);
@@ -315,8 +397,11 @@ public class BankController extends HttpServlet {
 	if(action.equalsIgnoreCase("depBalance")) {
 		int aid=Integer.parseInt(req.getParameter("vbn"));
 		int upbal=Integer.parseInt(req.getParameter("DeBal"));
+		Transaction tsa=new Transaction();
 		try {
 			Account acc=bs.depositBalance(aid, upbal);
+			tsa.setTransDesc("Deposit");
+			bs.insertintotransaction(tsa, acc, upbal);
 			RequestDispatcher rd= req.getRequestDispatcher("depositmoney.jsp");
 			req.setAttribute("setdep", acc);
 			String sbal=""+upbal;
@@ -333,15 +418,19 @@ public class BankController extends HttpServlet {
 	if(action.equalsIgnoreCase("witBalance")) {
 		int aid=Integer.parseInt(req.getParameter("vbn"));
 		int upbal=Integer.parseInt(req.getParameter("WeBal"));
+		Transaction tsa=new Transaction();
 		try {
 			Account acc=bs.withdrawBalance(aid, upbal);
-			if(acc.getAmount()==0) {
+			System.out.println("Balnce is low"+acc.getAmount());
+			if(acc.getAmount()<0) {
 				RequestDispatcher rd= req.getRequestDispatcher("withdrawmoney.jsp");
 				String rsms="Insufficient Balance in Account,please try again "+acc.getAccountID();
 				req.setAttribute("sumsg", rsms);
 				rd.forward(req, res);
 			}
 			else {
+				tsa.setTransDesc("Withdraw");
+				bs.insertintotransaction(tsa, acc, upbal);
 			RequestDispatcher rd= req.getRequestDispatcher("withdrawmoney.jsp");
 			req.setAttribute("setdep", acc);
 			String sbal=""+upbal;
@@ -359,6 +448,7 @@ public class BankController extends HttpServlet {
 		int dest=Integer.parseInt(req.getParameter("Tacc"));
 		int amo=Integer.parseInt(req.getParameter("Tamo"));
 		Account acc;
+		Transaction tsa=new Transaction();
 		try {
 			acc = bs.withdrawBalance(Source, amo);
 			if(acc.getAmount()==0) {
@@ -368,11 +458,23 @@ public class BankController extends HttpServlet {
 				rd.forward(req, res);
 			}
 			else {
-				acc=bs.depositBalance(dest, amo);
+				
+				Account acc1=bs.depositBalance(dest, amo);
+				tsa.setTransDesc("Transfer");
+				tsa.setSourceAccountType(acc.getAccount_type());
+				tsa.setTargetAccountType(acc1.getAccount_type());
+				tsa.setSoureAccountId(acc.getAccountID());
+				tsa.setTargetAccountId(acc1.getAccountID());
+				
 			RequestDispatcher rd= req.getRequestDispatcher("transfermoney.jsp");
 			
 			String sbal="Transfer Done" ;
 			req.setAttribute("transBal", sbal);
+			req.setAttribute("acc", acc);
+			req.setAttribute("acc1", acc1);
+			req.setAttribute("acc2", tsa);
+			String rsms="Transfer Successfully completed of amount "+amo;
+			req.setAttribute("sumsg", rsms);
 			rd.forward(req, res);}
 			
 		}
@@ -381,7 +483,110 @@ public class BankController extends HttpServlet {
 			e.printStackTrace();
 		}
 	}
+	
+	if(action.equalsIgnoreCase("transdetail")) {
+		int acid=Integer.parseInt(req.getParameter("ais"));
+		boolean flag=false;
+		try {
+			flag=bs.verifyAccountByAccID(acid);
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if(flag) {
+		if(req.getParameter("trans").equalsIgnoreCase("nTransac"))
+			{int num=Integer.parseInt(req.getParameter("numtrans"));
+			try {
+				List<Transaction> lst=bs.showbwtransactionBycount(acid,num);
+				System.out.println("Found id is:"+lst.get(0).getTargetAccountId());
+				
+				if(lst!=null){
+					
+					System.out.println(lst.get(0));
+					RequestDispatcher rd= req.getRequestDispatcher("showTransaction.jsp");
+					req.setAttribute("listcust", lst);
+					rd.forward(req, res);
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			}
+		else if(req.getParameter("trans").equalsIgnoreCase("rangeTrans")) {
+			
+			String sdate=req.getParameter("sdate");
+			String edate=req.getParameter("edate");
+			try {
+				List<Transaction> lst=bs.showbwtransactionBydates(sdate, edate, acid);
+				System.out.println(lst.get(0));
+				RequestDispatcher rd= req.getRequestDispatcher("showTransaction.jsp");
+				req.setAttribute("listcust", lst);
+				rd.forward(req, res);
+			} catch (SQLException | ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		}
+		else {
+			RequestDispatcher rd= req.getRequestDispatcher("showTransaction.jsp");
+			String msgs="Account id not find";
+			req.setAttribute("msgs", msgs);
+			rd.forward(req, res);
+		}
 		
+	}
+	
+	if(action.equalsIgnoreCase("SearchCustomer")) {
+		String updateopt=req.getParameter("search");
+		System.out.println(updateopt);
+		try {
+		if(updateopt.equalsIgnoreCase("cadhar")) {
+			int updateopt1=Integer.parseInt(req.getParameter("adhar"));
+			System.out.println(updateopt1);
+			
+			List<Integer> l1=bs.showAccountsByAdharId(updateopt1);
+			if(l1 !=null) {
+			RequestDispatcher rd= req.getRequestDispatcher("CustomerSearch.jsp");
+			req.setAttribute("class", l1);
+			rd.forward(req, res);
+		}
+			else {RequestDispatcher rd= req.getRequestDispatcher("CustomerSearch.jsp");
+			String geterm="No Accounts Found";
+			req.setAttribute("geterm", geterm);
+			rd.forward(req, res);}	
+		}
+		else if(updateopt.equalsIgnoreCase("cid")){
+			int updateopt2=Integer.parseInt(req.getParameter("CusID"));
+			System.out.println(updateopt2);
+			List<Integer> l1=bs.showAccountsByCustomerId(updateopt2);
+			cst=bs.searchCustomerByCusID(updateopt2);
+			RequestDispatcher rd= req.getRequestDispatcher("CustomerSearch.jsp");
+			req.setAttribute("class", l1);
+			rd.forward(req, res);
+		}
+		else {
+			RequestDispatcher rd= req.getRequestDispatcher("CustomerSearch.jsp");
+			String geterm="No Accounts Found";
+			req.setAttribute("geterm", geterm);
+			rd.forward(req, res);
+			
+		}
+		}
+		catch( SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	if(action.equalsIgnoreCase("secc")) {
+		int id=Integer.parseInt(req.getParameter("accid"));
+		RequestDispatcher rd= req.getRequestDispatcher("AccountSearch.jsp");
+		List<Integer> xid=new ArrayList<Integer>();
+		xid.add(id);
+		req.setAttribute("sout", xid);
+		rd.forward(req, res);
+	}
+	
 	
 }
 }

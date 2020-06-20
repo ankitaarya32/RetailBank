@@ -2,7 +2,9 @@ package com.FFFANS.bean;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.sql.Date;
+import java.sql.Time;
 
 public class Account {
 	private int CustomerID;
@@ -12,8 +14,9 @@ public class Account {
 	private String status="Active";
 	private String message;
 	private int amount;
+	
 	public Account(int customerID, int customerAdhar, int accountID, String account_type, String status, String message,
-			int amount, Date last_updated) {
+			int amount, Date last_updated, Time last_time) {
 		super();
 		CustomerID = customerID;
 		this.customerAdhar = customerAdhar;
@@ -23,6 +26,7 @@ public class Account {
 		this.message = message;
 		this.amount = amount;
 		Last_updated = last_updated;
+		Last_time = last_time;
 	}
 	public Account() {
 		super();
@@ -40,6 +44,13 @@ public class Account {
 		this.amount = amount;
 	}
 	private Date Last_updated = Date.valueOf(LocalDate.now());
+	private Time Last_time=Time.valueOf(LocalTime.now());
+	public Time getLast_time() {
+		return Last_time;
+	}
+	public void setLast_time(Time last_time) {
+		Last_time = last_time;
+	}
 	public int getCustomerID() {
 		return CustomerID;
 	}

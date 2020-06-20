@@ -1,5 +1,7 @@
 package com.FFFANS.bean;
 
+import java.sql.Time;
+import java.time.LocalTime;
 import java.util.Date;
 
 public class BankCustomer {
@@ -16,11 +18,20 @@ public class BankCustomer {
 	private String status;
 	private String message;
 	private Date last_update;
+	private Time Last_time=Time.valueOf(LocalTime.now());
+	public Time getLast_time() {
+		return Last_time;
+	}
+	public void setLast_time(Time last_time) {
+		Last_time = last_time;
+	}
 	public BankCustomer() {
 		super();
 	}
+	
 	public BankCustomer(int customerId, int customerAdhar, String customer_name, int age, String address, String city,
-			String state, int accountId, String account_type, String status, String message, Date last_update) {
+			String state, int accountId, String account_type, String status, String message, Date last_update,
+			Time last_time) {
 		super();
 		CustomerId = customerId;
 		CustomerAdhar = customerAdhar;
@@ -34,6 +45,7 @@ public class BankCustomer {
 		this.status = status;
 		this.message = message;
 		this.last_update = last_update;
+		Last_time = last_time;
 	}
 	public int getCustomerId() {
 		return CustomerId;
